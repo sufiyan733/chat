@@ -400,7 +400,7 @@ export const getAllChats = TryCatch(async (req: AuthenticatedRequest, res) => {
           },
         };
       } catch (error) {
-        console.error("Error fetching user service:", error?.message || error);
+        console.error("Error fetching user service:",error);
         return {
           user: { _id: otherUserId, name: "Unknown User" },
           chat: {
@@ -619,7 +619,7 @@ export const getMessagesByChat = TryCatch(async (req: AuthenticatedRequest, res)
       user: data,
     });
   } catch (error) {
-    console.error("Error fetching user service:", error?.message || error);
+    console.error("Error fetching user service:",error);
     res.json({
       messages,
       user: { _id: otherUserId, name: "Unknown User" },
