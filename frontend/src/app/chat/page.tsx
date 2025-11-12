@@ -1798,18 +1798,22 @@ const ChatPage: React.FC = () => {
     }
   };
 
-  const getLastMessagePreview = (chat: Chats) => {
-    if (!chat.chat.latestMessage) return "No messages yet";
+// Replace existing getLastMessagePreview with this
+const getLastMessagePreview = (chat: Chats) => {
+  const latest = chat.chat.latestMessage as any | null;
+  if (!latest) return "No messages yet";
 
-    if (chat.chat.latestMessage.messageType === "image") {
-      return "📷 Image";
-    }
+  // handle image messages if backend includes messageType or similar field
+  if (latest?.messageType === "image" || latest?.type === "image") {
+    return "📷 Image";
+  }
 
-    if (!chat.chat.latestMessage.text) return "No messages yet";
+  const text = latest?.text;
+  if (!text) return "No messages yet";
 
-    const message = chat.chat.latestMessage.text;
-    return message.length > 25 ? message.substring(0, 25) + '...' : message;
-  };
+  return text.length > 25 ? text.substring(0, 25) + '...' : text;
+};
+
 
   const getUnseenCount = (chat: Chats): number => chat.chat.unseenCount || 0;
 
