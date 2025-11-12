@@ -1515,7 +1515,10 @@ const ChatPage = () => {
 
 
     if (!isUsrExt) {
-      addUsr(selectedUser);
+      if(selectedUser){
+addUsr(selectedUser);
+      }
+      
 
     }
 
