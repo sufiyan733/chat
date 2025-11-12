@@ -4,6 +4,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
+import { userr_service } from '../../../../url';
 
 export default function UpdateNamePage() {
   const [name, setName] = useState('');
@@ -45,7 +46,7 @@ export default function UpdateNamePage() {
 
       const token = getCookie('token');
 
-      const response = await fetch('http://localhost:5000/api/v1/update/user', {
+      const response = await fetch(`${userr_service}/api/v1/update/user`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

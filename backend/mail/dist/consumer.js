@@ -1,49 +1,3 @@
-// import amqp from 'amqplib'
-// import nodemailer from 'nodemailer'
-// import dotenv from 'dotenv'
-// dotenv.config();
-// export const startSendOtpConsumer = async () => {
-//     try {
-//         const connection = await amqp.connect({
-//             protocol: "amqp",
-//             hostname: process.env.Rabbitmq_Host,
-//             port: 5672,
-//             username: process.env.Rabbitmq_Username,
-//             password: process.env.Rabbitmq_Password
-//         });
-//         const channel = await connection.createChannel();
-//         const queueName = "send-otp";
-//         await channel.assertQueue(queueName,{durable:true});
-//         console.log("MAIL SERVICE STARTED✅");
-//         channel.consume(queueName,async(msg)=>{
-//             if(msg){
-//                 try {
-//                     const {to,subject,body}=JSON.parse(msg.content.toString());
-//                     const transporter= nodemailer.createTransport({
-//                         host:"smtp.gmail.com",
-//                         port:587,
-//                         auth:{
-//                             user:process.env.USER,
-//                             pass:process.env.PASSWORD,
-//                         }
-//                     })
-//                     await transporter.sendMail({
-//                         from:"chat app",
-//                         to,
-//                         subject,
-//                         text:body
-//                     })
-//                   console.log(`opt mail sent to ${to}`);
-//                   channel.ack(msg);
-//                 } catch (error) {
-//                     console.log(error,"error☠️");
-//                 }
-//             }
-//         })
-//     } catch (error) {
-//         console.log(error, "error")
-//     }
-// }
 import amqp from "amqplib";
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
@@ -77,7 +31,7 @@ export const startSendOtpConsumer = async () => {
                     },
                 });
                 // use an absolute frontend URL from env (falls back to localhost)
-                const frontend = process.env.FRONTEND_URL || "http://localhost:3000";
+                const frontend = process.env.FRONTEND_URL;
                 await transporter.sendMail({
                     from: `"ChatApp" <no-reply@chatapp.com>`,
                     to,

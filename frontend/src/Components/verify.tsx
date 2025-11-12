@@ -4,8 +4,9 @@ import { useState, useRef, useEffect, KeyboardEvent } from "react";
 import { redirect, useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 import Cookies from "js-cookie";
-import { useAppData, user_service } from "@/context/AppContext";
+import { useAppData } from "@/context/AppContext";
 import Loading from "./loading";
+import { userr_service } from "../../url";
 
 export default function VerifyOtp() {
     const router = useRouter();
@@ -31,15 +32,13 @@ export default function VerifyOtp() {
 
     // Focus first input on mount
     useEffect(() => {
-        if (inputRefs.current[0]) {
-            inputRefs.current[0].focus();
-        }
+        inputRefs.current[0]?.focus();
     }, []);
 
     // Countdown timer for resend
     useEffect(() => {
         if (countdown > 0) {
-            const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+            const timer = setTimeout(() => setCountdown(prev => prev - 1), 1000);
             return () => clearTimeout(timer);
         }
     }, [countdown]);
@@ -57,7 +56,7 @@ export default function VerifyOtp() {
             inputRefs.current[index + 1]?.focus();
         }
 
-        // Auto-submit when all fields are filled
+        // Auto-submit when all fields are filled and this is last digit
         if (newCode.every(digit => digit !== "") && index === 5) {
             handleSubmit();
         }
@@ -106,29 +105,34 @@ export default function VerifyOtp() {
         setError("");
 
         try {
-            const { data } = await axios.post(`${user_service}/api/v1/verify`, {
+            console.log({email,verificationCode});
+            const { data } = await axios.post(`${userr_service}/api/v1/verify`, {
                 email,
                 otp: verificationCode
             });
+            
+            
 
-            Cookies.set("token", data.token, { expires: 15, secure: false, path: "/" });
-            
+            // Token lifetime and secure flag depend on your deployment; adjust as needed
+            Cookies.set("token", data.token, { expires: 15, path: "/" });
+
             setSuccess(true);
-            setUser(data.user);
-            setIsAuth(true);
-            
+            setUser?.(data.user);
+            setIsAuth?.(true);
+
             // Show success toast
             setShowToast(true);
-            
+
             setTimeout(() => {
-                fetchChats();
-                fetchUsers();
+                fetchChats?.();
+                fetchUsers?.();
                 router.push("/chat");
             }, 1500);
-
         } catch (err: any) {
+            console.log(err);
+            
             setError(
-                err.response?.data?.message ||
+                err?.response?.data?.message ||
                 "Invalid verification code. Please try again."
             );
             // Clear code on error
@@ -146,12 +150,11 @@ export default function VerifyOtp() {
         setError("");
 
         try {
-            await axios.post(`${user_service}/api/v1/login`, { email });
+            await axios.post(`${userr_service}/api/v1/login`, { email });
             setCountdown(60);
-            // Show toast for resend
             setShowToast(true);
         } catch (err: any) {
-            setError(err.response?.data?.message || "Failed to resend code");
+            setError(err?.response?.data?.message || "Failed to resend code");
         } finally {
             setResendLoading(false);
         }
@@ -163,14 +166,14 @@ export default function VerifyOtp() {
     };
 
     if (userLoading) {
-        return <Loading />
+        return <Loading />;
     }
 
     if (isAuth) redirect("/chat");
 
     return (
         <div className="h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4 overflow-hidden">
-            {/* Success Toast */}
+            {/* Success / Resend Toast */}
             {showToast && (
                 <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-sm">
                     <div className="bg-gradient-to-r from-blue-700 to-blue-800 rounded-xl p-4 shadow-2xl border border-blue-500/30 backdrop-blur-sm">
@@ -190,7 +193,7 @@ export default function VerifyOtp() {
                             </div>
                         </div>
                         <div className="h-1 bg-white/10 rounded-full mt-3 w-full overflow-hidden">
-                            <div 
+                            <div
                                 className="h-full bg-white/30 rounded-full animate-toast-progress"
                             />
                         </div>
@@ -206,11 +209,11 @@ export default function VerifyOtp() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                         </svg>
                     </div>
-                    
+
                     <h1 className="text-2xl font-semibold text-white mb-2 tracking-tight">
                         Verify Your Email
                     </h1>
-                    
+
                     <p className="text-slate-300 text-sm mb-1">
                         Enter the 6-digit code sent to
                     </p>
@@ -244,7 +247,7 @@ export default function VerifyOtp() {
                                 />
                             ))}
                         </div>
-                        
+
                         <p className="text-slate-400 text-xs text-center">
                             Tip: Paste code or use arrow keys
                         </p>
@@ -327,13 +330,13 @@ export default function VerifyOtp() {
 
             <style jsx global>{`
                 @keyframes toast-slide-in {
-                    from { 
-                        opacity: 0; 
-                        transform: translate(-50%, -20px); 
+                    from {
+                        opacity: 0;
+                        transform: translate(-50%, -20px);
                     }
-                    to { 
-                        opacity: 1; 
-                        transform: translate(-50%, 0); 
+                    to {
+                        opacity: 1;
+                        transform: translate(-50%, 0);
                     }
                 }
 
