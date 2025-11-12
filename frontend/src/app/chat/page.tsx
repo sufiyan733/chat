@@ -1,4 +1,6 @@
-// "use client""use client"
+
+
+// "use client"
 
 // import React, { useState, useEffect, useRef } from 'react';
 // import { useAppData, User, Chats, Message } from '@/context/AppContext';
@@ -43,6 +45,7 @@
 
 //   const [selectedUser, setSelectedUser] = useState<string | null>(null);
 //   const [sidebarOpen, setSidebarOpen] = useState(false);
+//   const [showAllUsers, setShowAllUsers] = useState(false);
 //   const [searchTerm, setSearchTerm] = useState("");
 //   const [messages, setMessages] = useState<Message[]>([]);
 //   const [newMessage, setNewMessage] = useState('');
@@ -132,10 +135,15 @@
 //     }
 //   }, [selectedUser]);
 
-//   // Enhanced search functionality - only for users now
+//   // Enhanced search functionality
 //   const filteredUsers = users?.filter(user =>
 //     user._id !== loggedInUser?._id &&
 //     user.name.toLowerCase().includes(searchTerm.toLowerCase())
+//   ) || [];
+
+//   const filteredChats = chats?.filter(chat =>
+//     chat.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+//     (chat.chat.latestMessage?.text?.toLowerCase().includes(searchTerm.toLowerCase()))
 //   ) || [];
 
 //   const reqChat = chats?.find((ch) => ch.user._id === selectedUser);
@@ -145,7 +153,7 @@
 //   useEffect(() => {
 //     const reqChat = chats?.find((ch) => ch.user._id === selectedUser);
 //     const chatID = reqChat?.chat._id;
-//     console.log(chats,'chats');
+//     console.log(chats,'');
     
 
 //     const getChat = async () => {
@@ -162,10 +170,12 @@
 //           return;
 //         }
 
+ 
 //         const res = await axios.get(`${chatt_service}/api/v1/message/${chatID}`, {
 //           headers: { Authorization: `Bearer ${token}` },
 //           withCredentials: true,
 //         });
+
 
 //         setMsgss(res.data.messages || []);
 
@@ -398,11 +408,17 @@
 
 //     let chatsss = chatss;
 //     const isUserExt = chatsss?.find((e) => {
+
 //       return e.user._id === selectedUser
 //     })
 
+
 //     if (!isUsrExt) {
-//       addUsr(selectedUser);
+//       if(selectedUser){
+// addUsr(selectedUser);
+//       }
+      
+
 //     }
 
 //     if (selectedUser) {
@@ -437,6 +453,7 @@
 //         formData.append('chatId', chatID);
 //         console.log("chatid", chatID);
 
+
 //         const { data } = await axios.post(
 //           `${chatt_service}/api/v1/message`,
 //           formData,
@@ -469,12 +486,14 @@
 //     setMsgss((prev: any) => [...prev, messageData]);
 //     console.log(msgss, 'mgss');
 
+
 //     const currentMessage = newMessage;
 //     const currentImage = selectedImage;
 //     setNewMessage('');
 //     setSelectedImage(null);
 //     setImageFile(null);
 //     console.log('imgfile', imageFile);
+
 
 //     try {
 //       if (socket && selectedUser && chatID) {
@@ -577,6 +596,20 @@
 //     }
 //   };
 
+//   const getLastMessagePreview = (chat: Chats) => {
+//     if (!chat.chat.latestMessage) return "No messages yet";
+
+//     if (chat.chat.latestMessage.messageType === "image") {
+//       return "📷 Image";
+//     }
+
+//     if (!chat.chat.latestMessage.text) return "No messages yet";
+
+//     const message = chat.chat.latestMessage.text;
+//     return message.length > 25 ? message.substring(0, 25) + '...' : message;
+//   };
+
+//   const getUnseenCount = (chat: Chats): number => chat.chat.unseenCount || 0;
 //   const isUserOnline = (userId: string): boolean => onlineUsers.includes(userId);
 //   const selectedUserDetails = users?.find(user => user._id === selectedUser);
 
@@ -650,12 +683,36 @@
 //           </div>
 //         </div>
 
+//         {/* Enhanced Toggle Buttons */}
+//         <div className="flex-shrink-0 p-3 border-b border-blue-100 bg-white/80 backdrop-blur-sm">
+//           <div className="flex bg-blue-50 rounded-lg p-1">
+//             <button
+//               onClick={() => setShowAllUsers(false)}
+//               className={`flex-1 py-2 px-3 text-center text-xs font-medium transition-all duration-200 rounded-md ${!showAllUsers
+//                 ? 'bg-white text-blue-600 shadow-sm border border-blue-200'
+//                 : 'text-blue-700 hover:text-blue-800 hover:bg-blue-100'
+//                 }`}
+//             >
+//               Chats
+//             </button>
+//             <button
+//               onClick={() => setShowAllUsers(true)}
+//               className={`flex-1 py-2 px-3 text-center text-xs font-medium transition-all duration-200 rounded-md ${showAllUsers
+//                 ? 'bg-white text-blue-600 shadow-sm border border-blue-200'
+//                 : 'text-blue-700 hover:text-blue-800 hover:bg-blue-100'
+//                 }`}
+//             >
+//               Users
+//             </button>
+//           </div>
+//         </div>
+
 //         {/* Enhanced Search with Better Functionality */}
 //         <div className="flex-shrink-0 p-3 border-b border-blue-100 bg-white/80 backdrop-blur-sm">
 //           <div className="relative">
 //             <input
 //               type="text"
-//               placeholder="Search users..."
+//               placeholder={`Search in ${showAllUsers ? 'users' : 'chats and messages'}...`}
 //               value={searchTerm}
 //               onChange={(e) => setSearchTerm(e.target.value)}
 //               className="w-full pl-9 pr-8 py-2.5 bg-blue-50 border border-blue-200 rounded-lg text-gray-900 placeholder-blue-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
@@ -676,66 +733,138 @@
 //           </div>
 //           {searchTerm && (
 //             <div className="mt-2 text-xs text-blue-600">
-//               Found {filteredUsers.length} users
+//               Found {showAllUsers ? filteredUsers.length : filteredChats.length} {showAllUsers ? 'users' : 'chats'}
 //             </div>
 //           )}
 //         </div>
 
-//         {/* Enhanced Users List */}
+//         {/* Enhanced Users/Chats List */}
 //         <div className="flex-1 overflow-y-auto">
-//           <div className="p-2">
-//             <h3 className="text-xs font-medium text-blue-600 uppercase tracking-wider mb-2 px-2">
-//               All Users ({filteredUsers.length})
-//             </h3>
-//             {filteredUsers.length > 0 ? (
-//               <div className="space-y-1">
-//                 {filteredUsers.map((user, index) => (
-//                   <div
-//                     key={user._id}
-//                     onClick={() => {
-//                       setSelectedUser(user._id);
-//                       setSidebarOpen(false);
-//                     }}
-//                     className={`flex items-center p-2 rounded-lg cursor-pointer transition-all duration-200 group ${selectedUser === user._id
-//                       ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg'
-//                       : 'hover:bg-blue-50 border border-transparent hover:border-blue-200'
-//                       }`}
-//                   >
-//                     <div className="relative">
-//                       <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white font-medium text-xs shadow-sm transition-transform duration-200 group-hover:scale-110 ${selectedUser === user._id
-//                         ? 'bg-white/20'
-//                         : 'bg-gradient-to-r from-blue-400 to-indigo-500'
-//                         }`}>
-//                         {user.name?.[0]?.toUpperCase() || 'U'}
+//           {showAllUsers ? (
+//             <div className="p-2">
+//               <h3 className="text-xs font-medium text-blue-600 uppercase tracking-wider mb-2 px-2">
+//                 All Users ({filteredUsers.length})
+//               </h3>
+//               {filteredUsers.length > 0 ? (
+//                 <div className="space-y-1">
+//                   {filteredUsers.map((user, index) => (
+//                     <div
+//                       key={user._id}
+//                       onClick={() => {
+//                         setSelectedUser(user._id);
+//                         setSidebarOpen(false);
+//                       }}
+//                       className={`flex items-center p-2 rounded-lg cursor-pointer transition-all duration-200 group ${selectedUser === user._id
+//                         ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg'
+//                         : 'hover:bg-blue-50 border border-transparent hover:border-blue-200'
+//                         }`}
+//                     >
+//                       <div className="relative">
+//                         <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white font-medium text-xs shadow-sm transition-transform duration-200 group-hover:scale-110 ${selectedUser === user._id
+//                           ? 'bg-white/20'
+//                           : 'bg-gradient-to-r from-blue-400 to-indigo-500'
+//                           }`}>
+//                           {user.name?.[0]?.toUpperCase() || 'U'}
+//                         </div>
+//                         <div className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border-2 ${selectedUser === user._id ? 'border-blue-500' : 'border-white'
+//                           } ${isUserOnline(user._id) ? 'bg-emerald-400' : 'bg-gray-400'}`}></div>
 //                       </div>
-//                       <div className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border-2 ${selectedUser === user._id ? 'border-blue-500' : 'border-white'
-//                         } ${isUserOnline(user._id) ? 'bg-emerald-400' : 'bg-gray-400'}`}></div>
+//                       <div className="ml-3 flex-1 min-w-0">
+//                         <p className={`text-sm font-medium truncate ${selectedUser === user._id ? 'text-white' : 'text-gray-900'
+//                           }`}>
+//                           {user.name}
+//                         </p>
+//                         <p className={`text-xs truncate ${selectedUser === user._id ? 'text-blue-100' : 'text-gray-500'
+//                           }`}>
+//                           {isUserOnline(user._id) ? 'Online' : 'Offline'}
+//                         </p>
+//                       </div>
 //                     </div>
-//                     <div className="ml-3 flex-1 min-w-0">
-//                       <p className={`text-sm font-medium truncate ${selectedUser === user._id ? 'text-white' : 'text-gray-900'
-//                         }`}>
-//                         {user.name}
-//                       </p>
-//                       <p className={`text-xs truncate ${selectedUser === user._id ? 'text-blue-100' : 'text-gray-500'
-//                         }`}>
-//                         {isUserOnline(user._id) ? 'Online' : 'Offline'}
-//                       </p>
-//                     </div>
-//                   </div>
-//                 ))}
-//               </div>
-//             ) : (
-//               <div className="text-center py-8 text-gray-500">
-//                 <div className="w-12 h-12 mx-auto mb-3 bg-blue-50 rounded-2xl flex items-center justify-center">
-//                   <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-//                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-//                   </svg>
+//                   ))}
 //                 </div>
-//                 <p className="text-sm text-blue-600">No users found</p>
-//                 <p className="text-xs text-blue-500 mt-1">Try different search terms</p>
-//               </div>
-//             )}
-//           </div>
+//               ) : (
+//                 <div className="text-center py-8 text-gray-500">
+//                   <div className="w-12 h-12 mx-auto mb-3 bg-blue-50 rounded-2xl flex items-center justify-center">
+//                     <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+//                     </svg>
+//                   </div>
+//                   <p className="text-sm text-blue-600">No users found</p>
+//                   <p className="text-xs text-blue-500 mt-1">Try different search terms</p>
+//                 </div>
+//               )}
+//             </div>
+//           ) : (
+//             <div className="p-2">
+//               <h3 className="text-xs font-medium text-blue-600 uppercase tracking-wider mb-2 px-2">
+//                 Recent Chats ({filteredChats.length})
+//               </h3>
+//               {filteredChats.length > 0 ? (
+//                 <div className="space-y-1">
+//                   {filteredChats.map((chatItem, index) => {
+//                     const otherUser = chatItem.user;
+//                     const unseenCount = getUnseenCount(chatItem);
+//                     return (
+//                       <div
+//                         id={`chat-item-${otherUser._id}`}
+//                         key={index}
+//                         onClick={() => {
+//                           setSelectedUser(otherUser._id);
+//                           setSidebarOpen(false);
+//                         }}
+//                         className={`flex items-center p-2 rounded-lg cursor-pointer transition-all duration-200 group ${selectedUser === otherUser._id
+//                           ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg'
+//                           : 'hover:bg-blue-50 border border-transparent hover:border-blue-200'
+//                           }`}
+//                       >
+//                         <div className="relative">
+//                           <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white font-medium text-xs shadow-sm transition-transform duration-200 group-hover:scale-110 ${selectedUser === otherUser._id
+//                             ? 'bg-white/20'
+//                             : 'bg-gradient-to-r from-cyan-500 to-blue-500'
+//                             }`}>
+//                             {otherUser.name?.[0]?.toUpperCase() || 'U'}
+//                           </div>
+//                           <div className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border-2 ${selectedUser === otherUser._id ? 'border-blue-500' : 'border-white'
+//                             } ${isUserOnline(otherUser._id) ? 'bg-emerald-400' : 'bg-gray-400'}`}></div>
+//                           {unseenCount > 0 && (
+//                             <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-xs text-white font-bold shadow-lg animate-pulse">
+//                               {unseenCount}
+//                             </div>
+//                           )}
+//                         </div>
+//                         <div className="ml-3 flex-1 min-w-0">
+//                           <div className="flex justify-between items-start mb-0.5">
+//                             <p className={`text-sm font-medium truncate ${selectedUser === otherUser._id ? 'text-white' : 'text-gray-900'
+//                               }`}>
+//                               {otherUser.name}
+//                             </p>
+//                             <span className={`text-xs whitespace-nowrap ml-2 ${selectedUser === otherUser._id ? 'text-blue-100' : 'text-gray-500'
+//                               }`}>
+//                               {formatTime(chatItem.chat.updatedAt)}
+//                             </span>
+//                           </div>
+//                           <p className={`text-xs truncate ${selectedUser === otherUser._id ? 'text-blue-100' : 'text-gray-600'
+//                             }`}>
+//                             {getLastMessagePreview(chatItem)}
+//                           </p>
+//                         </div>
+//                       </div>
+//                     );
+//                   })}
+//                 </div>
+//               ) : (
+//                 <div className="text-center py-8 text-gray-500">
+//                   <div className="w-12 h-12 mx-auto mb-3 bg-blue-50 rounded-2xl flex items-center justify-center">
+//                     <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+//                     </svg>
+//                   </div>
+//                   <p className="text-sm text-blue-600">No chats found</p>
+//                   <p className="text-xs text-blue-500 mt-1">Try different search terms</p>
+//                 </div>
+//               )}
+//             </div>
+//           )}
 //         </div>
 
 //         {/* Enhanced Footer */}
@@ -858,7 +987,7 @@
 //                 Welcome to Messages
 //               </h3>
 //               <p className="text-gray-600 text-sm mb-6 leading-relaxed">
-//                 Select a user from the sidebar to start chatting.
+//                 Select a conversation from the sidebar to start chatting.
 //               </p>
 //               <button
 //                 onClick={() => setSidebarOpen(true)}
@@ -867,7 +996,7 @@
 //                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 //                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
 //                 </svg>
-//                 Open Users
+//                 Open Chats
 //               </button>
 //             </div>
 //           </div>
@@ -1092,15 +1221,6 @@
 
 // export default ChatPage;
 
-
-
-
-
-
-
-
-
-
 "use client"
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -1139,7 +1259,7 @@ const EMOJIS = [
 
 const TYPING_DEBOUNCE_MS = 1000;
 
-const ChatPage = () => {
+const ChatPage: React.FC = () => {
   const { isAuth, loading, logoutUser, chats, user: loggedInUser, users, fetchChats, fetchUsers } = useAppData();
   const { onlineUsers, socket, joinChat, leaveChat } = SocketData();
   const router = useRouter();
@@ -1166,12 +1286,13 @@ const ChatPage = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const prevChatsLenRef = useRef<number>(chats?.length || 0);
-  const typingTimeoutRef = useRef<number | null>(null);
+  // use browser ReturnType for setTimeout
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSelectedChatRef = useRef<string | null>(null);
   const messageSoundRef = useRef<HTMLAudioElement | null>(null);
 
-  const [msgss, setMsgss] = useState<any>([]);
+  const [msgss, setMsgss] = useState<any[]>([]);
+  const [chatss, setchatss] = useState<any[] | null>(null);
 
   // Initialize message sound
   useEffect(() => {
@@ -1252,14 +1373,12 @@ const ChatPage = () => {
 
   // Message fetching
   useEffect(() => {
-    const reqChat = chats?.find((ch) => ch.user._id === selectedUser);
-    const chatID = reqChat?.chat._id;
-    console.log(chats,'');
-    
+    const reqChatLocal = chats?.find((ch) => ch.user._id === selectedUser);
+    const chatIDLocal = reqChatLocal?.chat._id;
 
     const getChat = async () => {
       try {
-        if (!chatID) {
+        if (!chatIDLocal) {
           setMsgss([]);
           return;
         }
@@ -1271,18 +1390,16 @@ const ChatPage = () => {
           return;
         }
 
- 
-        const res = await axios.get(`${chatt_service}/api/v1/message/${chatID}`, {
+        const res = await axios.get(`${chatt_service}/api/v1/message/${chatIDLocal}`, {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true,
         });
-
 
         setMsgss(res.data.messages || []);
 
         if (socket && res.data.messages?.length > 0) {
           socket.emit('markAsSeen', {
-            chatId: chatID,
+            chatId: chatIDLocal,
             messageIds: res.data.messages.map((m: any) => m._id)
           });
         }
@@ -1295,8 +1412,6 @@ const ChatPage = () => {
     getChat();
   }, [selectedUser, chats, socket]);
 
-  const [chatss, setchatss] = useState<any[] | null>(null)
-
   useEffect(() => {
     let mounted = true;
 
@@ -1307,7 +1422,6 @@ const ChatPage = () => {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true,
         });
-        // assume server returns { chats: [...] } or directly an array
         const payload = res.data;
         const arr = Array.isArray(payload) ? payload : payload?.chats ?? null;
 
@@ -1330,7 +1444,7 @@ const ChatPage = () => {
     const onNewMessage = (message: any) => {
       if (!message) return;
 
-      setMsgss((prev: any) => {
+      setMsgss((prev: any[]) => {
         if (prev.some((m: any) => m._id === message._id)) return prev;
 
         if (message.sender !== loggedInUser?._id && messageSoundRef.current) {
@@ -1362,7 +1476,7 @@ const ChatPage = () => {
         setMessageSeen(true);
         setTimeout(() => setMessageSeen(false), 2000);
 
-        setMsgss((prev: any) =>
+        setMsgss((prev: any[]) =>
           prev.map((msg: any) =>
             data.messageIds.includes(msg._id) ? { ...msg, seen: true } : msg
           )
@@ -1390,7 +1504,7 @@ const ChatPage = () => {
     if (!newMessage.trim()) {
       socket.emit("stopTyping", { to: selectedUser, chatId: chatID });
       if (typingTimeoutRef.current) {
-        window.clearTimeout(typingTimeoutRef.current);
+        clearTimeout(typingTimeoutRef.current);
         typingTimeoutRef.current = null;
       }
       return;
@@ -1398,8 +1512,8 @@ const ChatPage = () => {
 
     socket.emit("typing", { to: selectedUser, chatId: chatID });
 
-    if (typingTimeoutRef.current) window.clearTimeout(typingTimeoutRef.current);
-    typingTimeoutRef.current = window.setTimeout(() => {
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = setTimeout(() => {
       socket.emit("stopTyping", { to: selectedUser, chatId: chatID });
       typingTimeoutRef.current = null;
     }, TYPING_DEBOUNCE_MS);
@@ -1409,13 +1523,14 @@ const ChatPage = () => {
   useEffect(() => {
     return () => {
       if (typingTimeoutRef.current) {
-        window.clearTimeout(typingTimeoutRef.current);
+        clearTimeout(typingTimeoutRef.current);
         typingTimeoutRef.current = null;
       }
       if (socket && selectedUser && chatID) {
         socket.emit("stopTyping", { to: selectedUser, chatId: chatID });
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Auto-scroll
@@ -1464,8 +1579,8 @@ const ChatPage = () => {
 
       setImageFile(file);
       const reader = new FileReader();
-      reader.onload = (e) => {
-        setSelectedImage(e.target?.result as string);
+      reader.onload = (ev) => {
+        setSelectedImage(ev.target?.result as string);
       };
       reader.readAsDataURL(file);
     }
@@ -1505,25 +1620,16 @@ const ChatPage = () => {
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    let isUsrExt: any
+    // determine if the selected user already has a chat
+    const existingChat = chatss?.find((c: any) => c.user._id === selectedUser);
 
-    let chatsss = chatss;
-    const isUserExt = chatsss?.find((e) => {
-
-      return e.user._id === selectedUser
-    })
-
-
-    if (!isUsrExt) {
-      if(selectedUser){
-addUsr(selectedUser);
+    // if no chat exists, create it (guarded)
+    if (!existingChat) {
+      if (selectedUser) {
+        await addUsr(selectedUser);
+        // update chats if necessary (optional: call fetchChats or update local state)
+        fetchChats?.();
       }
-      
-
-    }
-
-    if (selectedUser) {
-
     }
 
     // If we have an image but no text, or we have text, or we have both
@@ -1551,10 +1657,8 @@ addUsr(selectedUser);
         const token = Cookies.get("token");
         const formData = new FormData();
         formData.append('image', imageFile);
-        formData.append('chatId', chatID);
-        console.log("chatid", chatID);
-
-
+        formData.append('chatId', chatID || '');
+        // upload image endpoint
         const { data } = await axios.post(
           `${chatt_service}/api/v1/message`,
           formData,
@@ -1566,11 +1670,13 @@ addUsr(selectedUser);
             withCredentials: true,
           }
         );
-        console.log(data.message, "data");
-        const MessageFromData = data.message
+        const MessageFromData = data.message;
+        // shape temp message for UI
         messageData = {
           ...messageData,
-          MessageFromData
+          messageType: "image",
+          image: MessageFromData?.image || MessageFromData?.imageUrl || null,
+          text: newMessage.trim() || '',
         };
       } catch (err: any) {
         console.error('Image upload failed:', err.response?.data || err.message);
@@ -1584,33 +1690,28 @@ addUsr(selectedUser);
     }
 
     // Add temporary message to UI
-    setMsgss((prev: any) => [...prev, messageData]);
-    console.log(msgss, 'mgss');
-
+    setMsgss((prev: any[]) => [...prev, messageData]);
 
     const currentMessage = newMessage;
     const currentImage = selectedImage;
     setNewMessage('');
     setSelectedImage(null);
     setImageFile(null);
-    console.log('imgfile', imageFile);
-
 
     try {
       if (socket && selectedUser && chatID) {
         socket.emit("stopTyping", { to: selectedUser, chatId: chatID });
         if (typingTimeoutRef.current) {
-          window.clearTimeout(typingTimeoutRef.current);
+          clearTimeout(typingTimeoutRef.current);
           typingTimeoutRef.current = null;
         }
       }
 
       const token = Cookies.get("token");
 
-      // For image messages, we already uploaded the image, so we just need to create the message
-      // For text messages, we send the normal message
       let res;
       if (messageData.messageType === "image") {
+        // If the backend expects a JSON create after upload
         res = await axios.post(
           `${chatt_service}/api/v1/message`,
           {
@@ -1646,7 +1747,7 @@ addUsr(selectedUser);
 
       const savedMessage = res.data?.message || res.data;
 
-      setMsgss((prev: any) => {
+      setMsgss((prev: any[]) => {
         const filtered = prev.filter((m: any) => m._id !== tempId && m._id !== savedMessage._id);
         return [...filtered, { ...savedMessage, animate: true }];
       });
@@ -1659,7 +1760,7 @@ addUsr(selectedUser);
       }
     } catch (err: any) {
       console.error(err.response?.data || err.message);
-      setMsgss((prev: any) => prev.filter((msg: any) => msg._id !== tempId));
+      setMsgss((prev: any[]) => prev.filter((msg: any) => msg._id !== tempId));
       setNewMessage(currentMessage);
       if (currentImage) {
         setSelectedImage(currentImage);
@@ -1679,7 +1780,7 @@ addUsr(selectedUser);
         withCredentials: true,
       });
 
-      setMsgss((prev: any) => prev.filter((msg: any) => msg._id !== messageId));
+      setMsgss((prev: any[]) => prev.filter((msg: any) => msg._id !== messageId));
     } catch (err: any) {
       console.error(err.response?.data || err.message);
     }
@@ -1711,8 +1812,14 @@ addUsr(selectedUser);
   };
 
   const getUnseenCount = (chat: Chats): number => chat.chat.unseenCount || 0;
-  const isUserOnline = (userId: string): boolean => onlineUsers.includes(userId);
-  const selectedUserDetails = users?.find(user => user._id === selectedUser);
+
+  // Accept null/undefined and check it
+  const isUserOnline = (userId?: string | null): boolean => {
+    if (!userId) return false;
+    return onlineUsers?.includes(userId);
+  };
+
+  const selectedUserDetails = users?.find(user => user._id === selectedUser) ?? null;
 
   if (loading) return <Loading />;
 
@@ -2139,7 +2246,7 @@ addUsr(selectedUser);
                       {message.messageType === "image" && message.image && (
                         <div className="mb-2">
                           <img
-                            src={message.image.url}
+                            src={message.image.url || message.image}
                             alt="Shared content"
                             className="max-w-full rounded-lg max-h-64 object-cover"
                           />
