@@ -44,11 +44,13 @@ export const SocketProvider = ({ children }: ProviderProps) => {
 
    const newSocket = io(chatt_service, {
   path: "/socket.io",
-  transports: ["polling"],
+  transports: ["polling"], // keep polling if you must
   auth: { userId: user._id },
+  query: { userId: user._id }, // <- add this so server.handshake.query works
   withCredentials: true,
   timeout: 20000,
 });
+
 
     setSocket(newSocket);
 
