@@ -43,21 +43,14 @@ export const SocketProvider = ({ children }: ProviderProps) => {
     if (!user?._id) return;
 
     // Create socket with sensible defaults: allow websocket + polling and upgrades.
-    const newSocket = io(chatt_service, {
-      path: "/socket.io",
-      transports: ["websocket", "polling"], // allow websocket but fallback to polling
-      auth: { userId: user._id },           // modern socket.io auth
-      query: { userId: user._id },          // keep if server reads handshake.query
-      withCredentials: true,
-      timeout: 20000,
-      forceNew: true,
-      // reconnection options (tuning)
-      reconnection: true,
-      reconnectionAttempts: 10,
-      reconnectionDelay: 1000,
-      reconnectionDelayMax: 5000,
-    });
-
+ const newSocket = io(chatt_service, {
+  path: '/socket.io',
+  transports: ['websocket', 'polling'],
+  auth: { userId: user._id },
+  withCredentials: true,
+  timeout: 20000,
+  autoConnect: true,
+});
     // expose for debugging in browser console
     try {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
