@@ -358,10 +358,11 @@
 import { useState, FormEvent, useEffect, useRef } from "react";
 import { redirect, useRouter } from "next/navigation";
 import axios from "axios";
-import { useAppData, user_service } from "@/context/AppContext";
+import { useAppData } from "@/context/AppContext";
 import Loading from "@/Components/loading";
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
 import * as THREE from 'three';
+import { userr_service } from "../../../url";
 
 export default function LoginPage() {
     const { loading: userLoading, isAuth } = useAppData();
@@ -515,7 +516,7 @@ export default function LoginPage() {
 
         setLoading(true);
         try {
-            await axios.post(`${user_service}/api/v1/login`, { email: trimmed });
+            await axios.post(`${userr_service}/api/v1/login`, { email: trimmed });
             setShowToast(true);
             setTimeout(() => {
                 router.push(`/verify?email=${trimmed}`);
