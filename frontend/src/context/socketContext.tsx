@@ -42,9 +42,13 @@ export const SocketProvider = ({ children }: ProviderProps) => {
   useEffect(() => {
     if (!user?._id) return;
 
-    const newSocket = io(chatt_service, {
-      query: { userId: user._id }
-    });
+   const newSocket = io(chatt_service, {
+  path: "/socket.io",
+  transports: ["polling"],
+  auth: { userId: user._id },
+  withCredentials: true,
+  timeout: 20000,
+});
 
     setSocket(newSocket);
 
