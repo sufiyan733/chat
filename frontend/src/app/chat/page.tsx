@@ -1,5 +1,4 @@
 
-
 // "use client"
 
 // import React, { useState, useEffect, useRef } from 'react';
@@ -38,7 +37,7 @@
 
 // const TYPING_DEBOUNCE_MS = 1000;
 
-// const ChatPage = () => {
+// const ChatPage: React.FC = () => {
 //   const { isAuth, loading, logoutUser, chats, user: loggedInUser, users, fetchChats, fetchUsers } = useAppData();
 //   const { onlineUsers, socket, joinChat, leaveChat } = SocketData();
 //   const router = useRouter();
@@ -65,12 +64,13 @@
 //   const inputRef = useRef<HTMLInputElement>(null);
 //   const emojiPickerRef = useRef<HTMLDivElement>(null);
 //   const fileInputRef = useRef<HTMLInputElement>(null);
-//   const prevChatsLenRef = useRef<number>(chats?.length || 0);
-//   const typingTimeoutRef = useRef<number | null>(null);
+//   // use browser ReturnType for setTimeout
+//   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 //   const lastSelectedChatRef = useRef<string | null>(null);
 //   const messageSoundRef = useRef<HTMLAudioElement | null>(null);
 
-//   const [msgss, setMsgss] = useState<any>([]);
+//   const [msgss, setMsgss] = useState<any[]>([]);
+//   const [chatss, setchatss] = useState<any[] | null>(null);
 
 //   // Initialize message sound
 //   useEffect(() => {
@@ -151,14 +151,12 @@
 
 //   // Message fetching
 //   useEffect(() => {
-//     const reqChat = chats?.find((ch) => ch.user._id === selectedUser);
-//     const chatID = reqChat?.chat._id;
-//     console.log(chats,'');
-    
+//     const reqChatLocal = chats?.find((ch) => ch.user._id === selectedUser);
+//     const chatIDLocal = reqChatLocal?.chat._id;
 
 //     const getChat = async () => {
 //       try {
-//         if (!chatID) {
+//         if (!chatIDLocal) {
 //           setMsgss([]);
 //           return;
 //         }
@@ -170,18 +168,16 @@
 //           return;
 //         }
 
- 
-//         const res = await axios.get(`${chatt_service}/api/v1/message/${chatID}`, {
+//         const res = await axios.get(`${chatt_service}/api/v1/message/${chatIDLocal}`, {
 //           headers: { Authorization: `Bearer ${token}` },
 //           withCredentials: true,
 //         });
-
 
 //         setMsgss(res.data.messages || []);
 
 //         if (socket && res.data.messages?.length > 0) {
 //           socket.emit('markAsSeen', {
-//             chatId: chatID,
+//             chatId: chatIDLocal,
 //             messageIds: res.data.messages.map((m: any) => m._id)
 //           });
 //         }
@@ -194,8 +190,6 @@
 //     getChat();
 //   }, [selectedUser, chats, socket]);
 
-//   const [chatss, setchatss] = useState<any[] | null>(null)
-
 //   useEffect(() => {
 //     let mounted = true;
 
@@ -206,7 +200,6 @@
 //           headers: { Authorization: `Bearer ${token}` },
 //           withCredentials: true,
 //         });
-//         // assume server returns { chats: [...] } or directly an array
 //         const payload = res.data;
 //         const arr = Array.isArray(payload) ? payload : payload?.chats ?? null;
 
@@ -229,7 +222,7 @@
 //     const onNewMessage = (message: any) => {
 //       if (!message) return;
 
-//       setMsgss((prev: any) => {
+//       setMsgss((prev: any[]) => {
 //         if (prev.some((m: any) => m._id === message._id)) return prev;
 
 //         if (message.sender !== loggedInUser?._id && messageSoundRef.current) {
@@ -261,7 +254,7 @@
 //         setMessageSeen(true);
 //         setTimeout(() => setMessageSeen(false), 2000);
 
-//         setMsgss((prev: any) =>
+//         setMsgss((prev: any[]) =>
 //           prev.map((msg: any) =>
 //             data.messageIds.includes(msg._id) ? { ...msg, seen: true } : msg
 //           )
@@ -289,7 +282,7 @@
 //     if (!newMessage.trim()) {
 //       socket.emit("stopTyping", { to: selectedUser, chatId: chatID });
 //       if (typingTimeoutRef.current) {
-//         window.clearTimeout(typingTimeoutRef.current);
+//         clearTimeout(typingTimeoutRef.current);
 //         typingTimeoutRef.current = null;
 //       }
 //       return;
@@ -297,8 +290,8 @@
 
 //     socket.emit("typing", { to: selectedUser, chatId: chatID });
 
-//     if (typingTimeoutRef.current) window.clearTimeout(typingTimeoutRef.current);
-//     typingTimeoutRef.current = window.setTimeout(() => {
+//     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+//     typingTimeoutRef.current = setTimeout(() => {
 //       socket.emit("stopTyping", { to: selectedUser, chatId: chatID });
 //       typingTimeoutRef.current = null;
 //     }, TYPING_DEBOUNCE_MS);
@@ -308,13 +301,14 @@
 //   useEffect(() => {
 //     return () => {
 //       if (typingTimeoutRef.current) {
-//         window.clearTimeout(typingTimeoutRef.current);
+//         clearTimeout(typingTimeoutRef.current);
 //         typingTimeoutRef.current = null;
 //       }
 //       if (socket && selectedUser && chatID) {
 //         socket.emit("stopTyping", { to: selectedUser, chatId: chatID });
 //       }
 //     };
+//     // eslint-disable-next-line react-hooks/exhaustive-deps
 //   }, []);
 
 //   // Auto-scroll
@@ -363,8 +357,8 @@
 
 //       setImageFile(file);
 //       const reader = new FileReader();
-//       reader.onload = (e) => {
-//         setSelectedImage(e.target?.result as string);
+//       reader.onload = (ev) => {
+//         setSelectedImage(ev.target?.result as string);
 //       };
 //       reader.readAsDataURL(file);
 //     }
@@ -404,25 +398,16 @@
 //   const handleSendMessage = async (e: React.FormEvent) => {
 //     e.preventDefault();
 
-//     let isUsrExt: any
+//     // determine if the selected user already has a chat
+//     const existingChat = chatss?.find((c: any) => c.user._id === selectedUser);
 
-//     let chatsss = chatss;
-//     const isUserExt = chatsss?.find((e) => {
-
-//       return e.user._id === selectedUser
-//     })
-
-
-//     if (!isUsrExt) {
-//       if(selectedUser){
-// addUsr(selectedUser);
+//     // if no chat exists, create it (guarded)
+//     if (!existingChat) {
+//       if (selectedUser) {
+//         await addUsr(selectedUser);
+//         // update chats if necessary (optional: call fetchChats or update local state)
+//         fetchChats?.();
 //       }
-      
-
-//     }
-
-//     if (selectedUser) {
-
 //     }
 
 //     // If we have an image but no text, or we have text, or we have both
@@ -450,10 +435,8 @@
 //         const token = Cookies.get("token");
 //         const formData = new FormData();
 //         formData.append('image', imageFile);
-//         formData.append('chatId', chatID);
-//         console.log("chatid", chatID);
-
-
+//         formData.append('chatId', chatID || '');
+//         // upload image endpoint
 //         const { data } = await axios.post(
 //           `${chatt_service}/api/v1/message`,
 //           formData,
@@ -465,11 +448,13 @@
 //             withCredentials: true,
 //           }
 //         );
-//         console.log(data.message, "data");
-//         const MessageFromData = data.message
+//         const MessageFromData = data.message;
+//         // shape temp message for UI
 //         messageData = {
 //           ...messageData,
-//           MessageFromData
+//           messageType: "image",
+//           image: MessageFromData?.image || MessageFromData?.imageUrl || null,
+//           text: newMessage.trim() || '',
 //         };
 //       } catch (err: any) {
 //         console.error('Image upload failed:', err.response?.data || err.message);
@@ -483,33 +468,28 @@
 //     }
 
 //     // Add temporary message to UI
-//     setMsgss((prev: any) => [...prev, messageData]);
-//     console.log(msgss, 'mgss');
-
+//     setMsgss((prev: any[]) => [...prev, messageData]);
 
 //     const currentMessage = newMessage;
 //     const currentImage = selectedImage;
 //     setNewMessage('');
 //     setSelectedImage(null);
 //     setImageFile(null);
-//     console.log('imgfile', imageFile);
-
 
 //     try {
 //       if (socket && selectedUser && chatID) {
 //         socket.emit("stopTyping", { to: selectedUser, chatId: chatID });
 //         if (typingTimeoutRef.current) {
-//           window.clearTimeout(typingTimeoutRef.current);
+//           clearTimeout(typingTimeoutRef.current);
 //           typingTimeoutRef.current = null;
 //         }
 //       }
 
 //       const token = Cookies.get("token");
 
-//       // For image messages, we already uploaded the image, so we just need to create the message
-//       // For text messages, we send the normal message
 //       let res;
 //       if (messageData.messageType === "image") {
+//         // If the backend expects a JSON create after upload
 //         res = await axios.post(
 //           `${chatt_service}/api/v1/message`,
 //           {
@@ -545,7 +525,7 @@
 
 //       const savedMessage = res.data?.message || res.data;
 
-//       setMsgss((prev: any) => {
+//       setMsgss((prev: any[]) => {
 //         const filtered = prev.filter((m: any) => m._id !== tempId && m._id !== savedMessage._id);
 //         return [...filtered, { ...savedMessage, animate: true }];
 //       });
@@ -558,7 +538,7 @@
 //       }
 //     } catch (err: any) {
 //       console.error(err.response?.data || err.message);
-//       setMsgss((prev: any) => prev.filter((msg: any) => msg._id !== tempId));
+//       setMsgss((prev: any[]) => prev.filter((msg: any) => msg._id !== tempId));
 //       setNewMessage(currentMessage);
 //       if (currentImage) {
 //         setSelectedImage(currentImage);
@@ -578,7 +558,7 @@
 //         withCredentials: true,
 //       });
 
-//       setMsgss((prev: any) => prev.filter((msg: any) => msg._id !== messageId));
+//       setMsgss((prev: any[]) => prev.filter((msg: any) => msg._id !== messageId));
 //     } catch (err: any) {
 //       console.error(err.response?.data || err.message);
 //     }
@@ -596,22 +576,32 @@
 //     }
 //   };
 
-//   const getLastMessagePreview = (chat: Chats) => {
-//     if (!chat.chat.latestMessage) return "No messages yet";
+// // Replace existing getLastMessagePreview with this
+// const getLastMessagePreview = (chat: Chats) => {
+//   const latest = chat.chat.latestMessage as any | null;
+//   if (!latest) return "No messages yet";
 
-//     if (chat.chat.latestMessage.messageType === "image") {
-//       return "📷 Image";
-//     }
+//   // handle image messages if backend includes messageType or similar field
+//   if (latest?.messageType === "image" || latest?.type === "image") {
+//     return "📷 Image";
+//   }
 
-//     if (!chat.chat.latestMessage.text) return "No messages yet";
+//   const text = latest?.text;
+//   if (!text) return "No messages yet";
 
-//     const message = chat.chat.latestMessage.text;
-//     return message.length > 25 ? message.substring(0, 25) + '...' : message;
-//   };
+//   return text.length > 25 ? text.substring(0, 25) + '...' : text;
+// };
+
 
 //   const getUnseenCount = (chat: Chats): number => chat.chat.unseenCount || 0;
-//   const isUserOnline = (userId: string): boolean => onlineUsers.includes(userId);
-//   const selectedUserDetails = users?.find(user => user._id === selectedUser);
+
+//   // Accept null/undefined and check it
+//   const isUserOnline = (userId?: string | null): boolean => {
+//     if (!userId) return false;
+//     return onlineUsers?.includes(userId);
+//   };
+
+//   const selectedUserDetails = users?.find(user => user._id === selectedUser) ?? null;
 
 //   if (loading) return <Loading />;
 
@@ -1038,7 +1028,7 @@
 //                       {message.messageType === "image" && message.image && (
 //                         <div className="mb-2">
 //                           <img
-//                             src={message.image.url}
+//                             src={message.image.url || message.image}
 //                             alt="Shared content"
 //                             className="max-w-full rounded-lg max-h-64 object-cover"
 //                           />
@@ -1220,6 +1210,7 @@
 // };
 
 // export default ChatPage;
+
 
 "use client"
 
@@ -1437,12 +1428,14 @@ const ChatPage: React.FC = () => {
     return () => { mounted = false; };
   }, [loggedInUser, selectedUser]);
 
-  // Socket listeners
+  // Socket listeners (with debug logs). NOTE: server emits "messagesSeen"
   useEffect(() => {
     if (!socket) return;
 
     const onNewMessage = (message: any) => {
       if (!message) return;
+
+      console.debug("CLIENT onNewMessage:", message);
 
       setMsgss((prev: any[]) => {
         if (prev.some((m: any) => m._id === message._id)) return prev;
@@ -1471,7 +1464,9 @@ const ChatPage: React.FC = () => {
       }
     };
 
-    const onMessageSeen = (data: { chatId: string; messageIds: string[] }) => {
+    // <-- FIX: listen for messagesSeen (server emits messagesSeen)
+    const onMessagesSeen = (data: { chatId: string; messageIds: string[]; seenBy?: string }) => {
+      console.debug("CLIENT onMessagesSeen:", data);
       if (data.chatId === chatID) {
         setMessageSeen(true);
         setTimeout(() => setMessageSeen(false), 2000);
@@ -1484,18 +1479,63 @@ const ChatPage: React.FC = () => {
       }
     };
 
+    console.debug("Attaching socket listeners: newMessage, istyping, stopTyping, messagesSeen");
     socket.on("newMessage", onNewMessage);
     socket.on("istyping", onIsTyping);
     socket.on("stopTyping", onStopTyping);
-    socket.on("messageSeen", onMessageSeen);
+    socket.on("messagesSeen", onMessagesSeen); // <--- corrected event name
 
     return () => {
+      console.debug("Removing socket listeners for chat page");
       socket.off("newMessage", onNewMessage);
       socket.off("istyping", onIsTyping);
       socket.off("stopTyping", onStopTyping);
-      socket.off("messageSeen", onMessageSeen);
+      socket.off("messagesSeen", onMessagesSeen);
     };
   }, [socket, selectedUser, chatID, loggedInUser]);
+
+  // Join chat room when socket connects and chatID is available
+  useEffect(() => {
+    if (!socket || !chatID) return;
+
+    let connectedHandler: (() => void) | null = null;
+    let didJoin = false;
+
+    const doJoin = () => {
+      if (!socket) return;
+      try {
+        console.debug("CLIENT: joining chat room:", chatID, "socketId:", socket.id);
+        joinChat(chatID);
+        didJoin = true;
+      } catch (err) {
+        console.error("CLIENT: joinChat error:", err);
+      }
+    };
+
+    if (socket.connected) {
+      doJoin();
+    } else {
+      connectedHandler = () => {
+        console.debug("CLIENT: socket connected event fired, joining:", chatID);
+        doJoin();
+      };
+      socket.on("connect", connectedHandler);
+    }
+
+    return () => {
+      if (socket && didJoin && chatID) {
+        try {
+          console.debug("CLIENT: leaving chat room:", chatID);
+          leaveChat(chatID);
+        } catch (err) {
+          console.error("CLIENT: leaveChat error:", err);
+        }
+      }
+      if (socket && connectedHandler) socket.off("connect", connectedHandler);
+    };
+    // intentionally include joinChat/leaveChat not to cause stale closures
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [socket, chatID]);
 
   // Typing indicators
   useEffect(() => {
@@ -1826,6 +1866,7 @@ const getLastMessagePreview = (chat: Chats) => {
   const selectedUserDetails = users?.find(user => user._id === selectedUser) ?? null;
 
   if (loading) return <Loading />;
+
 
   return (
     <div className="h-screen flex bg-gradient-to-br from-blue-50 to-indigo-50 text-gray-900 overflow-hidden relative">
