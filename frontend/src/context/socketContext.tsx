@@ -42,13 +42,15 @@ export const SocketProvider = ({ children }: ProviderProps) => {
   useEffect(() => {
     if (!user?._id) return;
 
-   const newSocket = io(chatt_service, {
+const newSocket = io(chatt_service, {
   path: "/socket.io",
-  transports: ["polling"], // keep polling if you must
+  transports: ["polling"],
   auth: { userId: user._id },
-  query: { userId: user._id }, // <- add this so server.handshake.query works
+  query: { userId: user._id },
   withCredentials: true,
   timeout: 20000,
+  forceNew: true,
+  upgrade: false,   // keep for debug; remove once stable
 });
 
 
