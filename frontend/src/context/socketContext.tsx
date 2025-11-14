@@ -43,7 +43,7 @@ export const SocketProvider = ({ children }: ProviderProps) => {
     if (!user?._id) return;
 
     // Create socket with sensible defaults: allow websocket + polling and upgrades.
- const newSocket = io(chatt_service, {
+ const newSocket = io('https://sufiyanbe.duckdns.org', {  // NOT /chat/
   path: '/socket.io',
   transports: ['websocket', 'polling'],
   auth: { userId: user._id },
