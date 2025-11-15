@@ -535,7 +535,7 @@ import * as THREE from "three";
 import axios from "axios";
 import { userr_service } from "../../../url";
 
-export default function PremiumLoginPage(): JSX.Element {
+export default function PremiumLoginPage(){
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
